@@ -110,42 +110,50 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
-  // FIX: Per coding guidelines, API key must be read from process.env.API_KEY.
+  // Fix: Use process.env.API_KEY as per @google/genai guidelines.
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("Configuration Error: The API_KEY environment variable is not set. Please configure it in your deployment settings.");
+    throw new Error("Configuration Error: The API_KEY environment variable is not set. Please add it to your deployment settings and redeploy.");
   }
+
   const ai = new GoogleGenAI({ apiKey });
 
-  let parts;
-  if (file.type.startsWith('image/')) {
-    parts = [await fileToGenerativePart(file)];
-  } else if (file.type === 'application/pdf') {
-    parts = await pdfToGenerativeParts(file);
+  const text_prompt = {
+    text: "Analyze the following exam paper images and extract the content into the specified JSON format."
+  };
+
+  let imageParts;
+  if (file.type === 'application/pdf') {
+      imageParts = await pdfToGenerativeParts(file);
   } else {
-    throw new Error("Unsupported file type. Please upload an image or a PDF.");
+      imageParts = [await fileToGenerativePart(file)];
   }
   
-  const prompt = "Analyze these exam paper images, which represent pages of a single document. Extract the content into the specified JSON format, collating information across all pages into one cohesive structure."
+  const contents = {
+    parts: [text_prompt, ...imageParts],
+  };
 
-  try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: { parts: [...parts, { text: prompt }] },
-      config: {
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: contents,
+    config: {
         systemInstruction: systemPrompt,
-        responseMimeType: 'application/json',
-      }
-    });
-
-    const jsonText = response.text.trim();
-    const parsedData: Exam = JSON.parse(jsonText);
-    return parsedData;
-  } catch (error) {
-    console.error("Error parsing exam:", error);
-    if (error instanceof SyntaxError) {
-        throw new Error("Failed to parse the response from the AI. The format might be incorrect.");
+        responseMimeType: "application/json",
     }
-    throw new Error("An error occurred while communicating with the AI service.");
+  });
+
+  const resultText = response.text;
+  if (!resultText) {
+      throw new Error("The AI returned an empty response. The document might be unreadable or contain no relevant content.");
+  }
+  
+  try {
+    // Clean up potential markdown formatting before parsing.
+    const cleanedText = resultText.trim().replace(/^```json\n?/, '').replace(/```\n?$/, '');
+    const parsedJson = JSON.parse(cleanedText);
+    return parsedJson as Exam;
+  } catch (e) {
+    console.error("Failed to parse JSON response from Gemini:", resultText);
+    throw new Error("The AI returned data in an unexpected format. Please try again with a different file.");
   }
 };

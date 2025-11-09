@@ -13,8 +13,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   
-  // FIX: Per coding guidelines, API key must be read from process.env.API_KEY.
-  const apiKey = process.env.API_KEY;
+  // Fix: Removed direct API key handling from the component.
+  // The service layer is now responsible for using the environment variable.
 
   const handleFileUpload = useCallback(async (file: File) => {
     setIsLoading(true);
@@ -49,23 +49,7 @@ function App() {
   }, []);
 
   const renderContent = () => {
-    if (!apiKey) {
-      return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-          <div className="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg text-center">
-            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Configuration Required</h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-2">
-              The Gemini API key has not been configured for this application.
-            </p>
-            <p className="text-gray-600 dark:text-gray-400">
-              {/* FIX: Update environment variable name in the user-facing message. */}
-              To fix this, please set the <code className="bg-gray-200 dark:bg-gray-700 font-mono p-1 rounded">API_KEY</code> environment variable in your deployment settings (e.g., on Vercel) and then redeploy your application.
-            </p>
-          </div>
-        </div>
-      );
-    }
-
+    // Fix: Removed manual API key check. Errors are handled by the try/catch in handleFileUpload.
     return (
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">

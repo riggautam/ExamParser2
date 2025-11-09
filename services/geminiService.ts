@@ -3,7 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { Exam } from '../types';
 
 // Configure the PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.394/build/pdf.worker.min.mjs';
 
 // Fix: Per coding guidelines, use process.env.API_KEY to address the 'ImportMeta' error and align with standards.
 const API_KEY = process.env.API_KEY;
@@ -132,7 +132,7 @@ export const parseExam = async (file: File): Promise<Exam> => {
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: [{ parts: [...parts, { text: prompt }] }],
+      contents: { parts: [...parts, { text: prompt }] },
       config: {
         systemInstruction: systemPrompt,
         // Fix: Added responseMimeType to ensure the model returns a clean JSON string, improving parsing reliability.

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import * as pdfjsLib from 'pdfjs-dist';
 import { Exam } from '../types';
@@ -32,8 +31,9 @@ const pdfToGenerativeParts = async (file: File) => {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        // FIX: Added 'canvas' property to render parameters to match the expected type definition.
-        await page.render({ canvas, canvasContext: context, viewport: viewport }).promise;
+        // FIX: The page.render method expects a 'canvas' property instead of 'canvasContext'
+        // in this version of pdfjs-dist.
+        await page.render({ canvas: canvas, viewport: viewport }).promise;
 
         const base64EncodedData = canvas.toDataURL('image/jpeg').split(',')[1];
         parts.push({
@@ -59,8 +59,9 @@ export const getFirstPdfPageAsImage = async (file: File): Promise<string> => {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
-    // FIX: Added 'canvas' property to render parameters to match the expected type definition.
-    await page.render({ canvas, canvasContext: context, viewport: viewport }).promise;
+    // FIX: The page.render method expects a 'canvas' property instead of 'canvasContext'
+    // in this version of pdfjs-dist.
+    await page.render({ canvas: canvas, viewport: viewport }).promise;
     return canvas.toDataURL('image/jpeg');
 };
 
@@ -112,7 +113,10 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
-  // FIX: API key is now correctly sourced from environment variables instead of being hardcoded.
+  if (!process.env.API_KEY) {
+    throw new Error("API key not configured. The `API_KEY` environment variable is missing or not accessible in this environment. If deploying to Vercel, ensure the variable is exposed to the client.");
+  }
+  // FIX: Use environment variable for API key as per security best practices.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const text_prompt = {

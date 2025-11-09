@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import * as pdfjsLib from 'pdfjs-dist';
 import { Exam } from '../types';
@@ -109,13 +110,9 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
-  const API_KEY = process.env.API_KEY;
-
-  if (!API_KEY) {
-    throw new Error("Configuration Error: The API_KEY environment variable is not set. Please configure it in your hosting environment.");
-  }
-  
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  // Fix: Per guidelines, use process.env.API_KEY directly and assume it is configured.
+  // This resolves the 'import.meta.env' TypeScript error.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   let parts;
   if (file.type.startsWith('image/')) {
@@ -146,9 +143,7 @@ export const parseExam = async (file: File): Promise<Exam> => {
     if (error instanceof SyntaxError) {
         throw new Error("Failed to parse the response from the AI. The format might be incorrect.");
     }
-    if (error instanceof Error && error.message.startsWith("Configuration Error:")) {
-        throw error;
-    }
+    // Fix: Removed specific error handling for missing API key, as per guidelines.
     throw new Error("An error occurred while communicating with the AI service.");
   }
 };

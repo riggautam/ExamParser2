@@ -110,8 +110,12 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
-  // FIX: Use process.env.API_KEY as per the guidelines. Assume this variable is pre-configured.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // FIX: Per coding guidelines, API key must be read from process.env.API_KEY.
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("Configuration Error: The API_KEY environment variable is not set. Please configure it in your deployment settings.");
+  }
+  const ai = new GoogleGenAI({ apiKey });
 
   let parts;
   if (file.type.startsWith('image/')) {

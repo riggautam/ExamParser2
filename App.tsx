@@ -13,7 +13,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   
-  // FIX: Use process.env.API_KEY as per the guidelines.
+  // FIX: Per coding guidelines, API key must be read from process.env.API_KEY.
   const apiKey = process.env.API_KEY;
 
   const handleFileUpload = useCallback(async (file: File) => {

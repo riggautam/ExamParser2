@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Exam } from './types';
 import { parseExam, getFirstPdfPageAsImage } from './services/geminiService';
 import FileUpload from './components/FileUpload';
@@ -7,11 +7,37 @@ import ExamDisplay from './components/ExamDisplay';
 import Loader from './components/Loader';
 import ErrorMessage from './components/ErrorMessage';
 
+const ApiKeyMessage: React.FC = () => (
+    <div className="bg-yellow-100 dark:bg-yellow-900/40 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 p-6 rounded-lg shadow-md" role="alert">
+      <div className="flex">
+        <div className="py-1">
+          <svg className="fill-current h-6 w-6 text-yellow-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2V5zm0 8h2v2h-2v-2z"/>
+          </svg>
+        </div>
+        <div>
+          <p className="font-bold text-lg">Configuration Required</p>
+          <p className="mt-2">The Gemini API key has not been configured for this application.</p>
+          <p className="mt-2 text-sm">
+            To fix this, please set the <code className="bg-yellow-200 dark:bg-yellow-800/50 px-1 py-0.5 rounded font-mono">API_KEY</code> environment variable in your deployment settings (e.g., on Vercel) and then redeploy your application.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
 function App() {
   const [examData, setExamData] = useState<Exam | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isApiKeySet, setIsApiKeySet] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!process.env.API_KEY) {
+      setIsApiKeySet(false);
+    }
+  }, []);
 
   const handleFileUpload = useCallback(async (file: File) => {
     setIsLoading(true);
@@ -58,34 +84,40 @@ function App() {
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-center">Upload Your Exam Paper</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
-              Upload an image or PDF of a biomedical exam paper. The AI will analyze it, extract the questions, and provide answers.
-            </p>
-            <FileUpload onFileUpload={handleFileUpload} disabled={isLoading} />
-          </div>
-
-          {isLoading && <Loader />}
-          {error && <ErrorMessage message={error} />}
-          
-          {examData && filePreview && (
-            <div className="mt-8 flex flex-col lg:flex-row gap-8">
-              <div className="lg:w-1/3">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">Uploaded File Preview</h3>
-                  <img src={filePreview} alt="Exam paper preview" className="rounded-lg shadow-md w-full" />
+          {!isApiKeySet ? (
+            <ApiKeyMessage />
+          ) : (
+            <>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+                <h2 className="text-xl font-semibold mb-4 text-center">Upload Your Exam Paper</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
+                  Upload an image or PDF of a biomedical exam paper. The AI will analyze it, extract the questions, and provide answers.
+                </p>
+                <FileUpload onFileUpload={handleFileUpload} disabled={isLoading} />
               </div>
-              <div className="lg:w-2/3">
-                <ExamDisplay exam={examData} />
-              </div>
-            </div>
-          )}
 
-          {!isLoading && !examData && !error && (
-             <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <p className="mt-4 text-lg">Your parsed exam will appear here.</p>
-            </div>
+              {isLoading && <Loader />}
+              {error && <ErrorMessage message={error} />}
+              
+              {examData && filePreview && (
+                <div className="mt-8 flex flex-col lg:flex-row gap-8">
+                  <div className="lg:w-1/3">
+                      <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">Uploaded File Preview</h3>
+                      <img src={filePreview} alt="Exam paper preview" className="rounded-lg shadow-md w-full" />
+                  </div>
+                  <div className="lg:w-2/3">
+                    <ExamDisplay exam={examData} />
+                  </div>
+                </div>
+              )}
+
+              {!isLoading && !examData && !error && (
+                 <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <p className="mt-4 text-lg">Your parsed exam will appear here.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

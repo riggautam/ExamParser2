@@ -5,15 +5,6 @@ import { Exam } from '../types';
 // Configure the PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://aistudiocdn.com/pdfjs-dist@5.4.394/build/pdf.worker.min.mjs';
 
-// Fix: Per coding guidelines, use process.env.API_KEY to address the 'ImportMeta' error and align with standards.
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set. Please ensure it is configured in your environment.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
-
 const fileToGenerativePart = async (file: File) => {
   const base64EncodedDataPromise = new Promise<string>((resolve) => {
     const reader = new FileReader();
@@ -118,6 +109,14 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
+  const API_KEY = process.env.API_KEY;
+
+  if (!API_KEY) {
+    throw new Error("Configuration Error: The API_KEY environment variable is not set. Please configure it in your hosting environment.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
+
   let parts;
   if (file.type.startsWith('image/')) {
     parts = [await fileToGenerativePart(file)];
@@ -135,12 +134,10 @@ export const parseExam = async (file: File): Promise<Exam> => {
       contents: { parts: [...parts, { text: prompt }] },
       config: {
         systemInstruction: systemPrompt,
-        // Fix: Added responseMimeType to ensure the model returns a clean JSON string, improving parsing reliability.
         responseMimeType: 'application/json',
       }
     });
 
-    // Fix: Removed brittle string manipulation of the JSON response.
     const jsonText = response.text.trim();
     const parsedData: Exam = JSON.parse(jsonText);
     return parsedData;
@@ -148,6 +145,9 @@ export const parseExam = async (file: File): Promise<Exam> => {
     console.error("Error parsing exam:", error);
     if (error instanceof SyntaxError) {
         throw new Error("Failed to parse the response from the AI. The format might be incorrect.");
+    }
+    if (error instanceof Error && error.message.startsWith("Configuration Error:")) {
+        throw error;
     }
     throw new Error("An error occurred while communicating with the AI service.");
   }

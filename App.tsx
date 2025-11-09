@@ -12,6 +12,9 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  
+  // FIX: Use process.env.API_KEY as per the guidelines.
+  const apiKey = process.env.API_KEY;
 
   const handleFileUpload = useCallback(async (file: File) => {
     setIsLoading(true);
@@ -45,17 +48,25 @@ function App() {
     }
   }, []);
 
-  return (
-    <div className="min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-300">
-      <header className="bg-white dark:bg-gray-800 shadow-md">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-400">
-            Gemini Exam Parser
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">AI-Powered Exam Analysis</p>
+  const renderContent = () => {
+    if (!apiKey) {
+      return (
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg text-center">
+            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Configuration Required</h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">
+              The Gemini API key has not been configured for this application.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {/* FIX: Update environment variable name in the user-facing message. */}
+              To fix this, please set the <code className="bg-gray-200 dark:bg-gray-700 font-mono p-1 rounded">API_KEY</code> environment variable in your deployment settings (e.g., on Vercel) and then redeploy your application.
+            </p>
+          </div>
         </div>
-      </header>
+      );
+    }
 
+    return (
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
@@ -89,6 +100,20 @@ function App() {
             )}
         </div>
       </main>
+    )
+  }
+
+  return (
+    <div className="min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-300">
+      <header className="bg-white dark:bg-gray-800 shadow-md">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-400">
+            Gemini Exam Parser
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">AI-Powered Exam Analysis</p>
+        </div>
+      </header>
+      {renderContent()}
     </div>
   );
 }

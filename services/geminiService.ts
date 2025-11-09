@@ -110,8 +110,7 @@ Extraction Rules:
 
 
 export const parseExam = async (file: File): Promise<Exam> => {
-  // Fix: Per guidelines, use process.env.API_KEY directly and assume it is configured.
-  // This resolves the 'import.meta.env' TypeScript error.
+  // FIX: Use process.env.API_KEY as per the guidelines. Assume this variable is pre-configured.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   let parts;
@@ -143,7 +142,6 @@ export const parseExam = async (file: File): Promise<Exam> => {
     if (error instanceof SyntaxError) {
         throw new Error("Failed to parse the response from the AI. The format might be incorrect.");
     }
-    // Fix: Removed specific error handling for missing API key, as per guidelines.
     throw new Error("An error occurred while communicating with the AI service.");
   }
 };

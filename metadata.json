@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Exam Parser",
+  "description": "An intelligent tool that uses Gemini to analyze uploaded exam papers, extract questions, identify answers, and present them in a structured, easy-to-review format.",
+  "requestFramePermissions": []
+}
